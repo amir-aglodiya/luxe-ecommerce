@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="hero-copy"><p class="eyebrow">Edition 04 · New arrivals</p><h1>Quiet pieces.<br><em>Distinct presence.</em></h1><p class="hero-intro">A considered edit of objects for the way you live now. Made to be noticed slowly, and kept for longer.</p><a class="button button-dark" href="{{ url_for('shop') }}">Explore the edit <span>↗</span></a></div>
+  <div class="hero-image"><img src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1400&q=90" alt="Model wearing a minimal black outfit"><span class="image-note">01 / 04<br>THE NEW FORM</span></div>
+</section>
+<section class="intro-band" id="journal"><p class="eyebrow">Our point of view</p><p>Less, but better. We select design-led essentials with material integrity, enduring silhouettes, and a little room for your own story.</p></section>
+<section class="product-section"><div class="section-heading"><div><p class="eyebrow">Selected pieces</p><h2>The edit</h2></div><a href="{{ url_for('shop') }}" class="text-link">View all pieces ↗</a></div><div class="product-grid">{% for product in products %}{% include '_product_card.html' %}{% endfor %}</div></section>
+{% endblock %}

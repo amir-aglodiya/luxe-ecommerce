@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<section class="auth-page"><div><p class="eyebrow">Your account</p><h1>Make it<br><em>yours.</em></h1><p class="hero-intro">Keep your contact and delivery details ready for your next order.</p><p><a class="text-link" href="{{ url_for('database_view') }}">View saved data ↗</a></p></div><form class="auth-form" method="post"><label for="name">Full name</label><input id="name" name="name" value="{{ user.name }}" required><label for="email">Email</label><input id="email" name="email" type="email" value="{{ user.email }}" required><label for="phone">Phone</label><input id="phone" name="phone" value="{{ user.phone }}" placeholder="+91"><label for="address">Delivery address</label><textarea id="address" name="address" rows="4" placeholder="Street, city, PIN code">{{ user.address }}</textarea><button class="button button-dark full" type="submit">Update profile <span>↗</span></button></form></section>
+{% endblock %}

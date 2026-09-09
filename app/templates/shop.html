@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block title %}Shop{% endblock %}
+{% block content %}
+<section class="shop-header"><p class="eyebrow">The collection</p><h1>Find your <em>everyday.</em></h1><p>Objects chosen for utility, beauty, and the space between.</p></section>
+<div class="catalog-toolbar"><div class="filters"><a class="{% if not active_category %}active{% endif %}" href="{{ url_for('shop') }}">All</a>{% for category in categories %}<a class="{% if active_category == category.category %}active{% endif %}" href="{{ url_for('shop', category=category.category) }}">{{ category.category }}</a>{% endfor %}</div><span class="count">{{ products|length }} pieces</span></div>
+<section class="product-grid catalog-grid">{% for product in products %}{% include '_product_card.html' %}{% else %}<p>No pieces found.</p>{% endfor %}</section>
+{% endblock %}

@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block content %}
+<section class="product-detail"><div class="detail-image"><img src="{{ product.image }}" alt="{{ product.name }}"></div><div class="detail-copy"><p class="eyebrow">{{ product.category }}</p><h1>{{ product.name }}</h1><p class="detail-price">₹{{ '%.0f'|format(product.price) }}</p><p class="detail-description">{{ product.description }}</p><form method="post" action="{{ url_for('add_to_cart', product_id=product.id) }}"><input type="hidden" name="next" value="{{ request.path }}"><label for="quantity">Quantity</label><input id="quantity" name="quantity" type="number" min="1" value="1"><button class="button button-dark" type="submit">Add to bag <span>+</span></button></form><div class="detail-notes"><p>Free shipping on orders over ₹12,750</p><p>30-day returns, always</p></div></div></section>
+{% endblock %}

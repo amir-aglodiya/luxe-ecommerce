@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Customer support{% endblock %}
+{% block content %}
+<style>
+  .support-details { border-top: 1px solid var(--ink); padding-top: 22px; display: flex; flex-direction: column; align-items: flex-start; }
+  .support-details h2 { font: 500 42px/1 var(--serif); margin: 24px 0 28px; }
+  .support-details a { font: 16px var(--mono); border-bottom: 1px solid var(--ink); margin-bottom: 14px; }
+  .support-note { color: var(--muted); font-size: 13px; max-width: 330px; margin-top: 34px; }
+</style>
+<section class="auth-page support-page">
+  <div>
+    <p class="eyebrow">Customer care</p>
+    <h1>We are here<br><em>to help.</em></h1>
+    <p class="hero-intro">Questions about an order, a product, or delivery? Reach our customer support directly.</p>
+  </div>
+  <div class="support-details">
+    <p class="eyebrow">Your support contact</p>
+    <h2>Amir Ahmad</h2>
+    <a href="mailto:amiraglodiya1@gmail.com">amiraglodiya1@gmail.com</a>
+    <a href="tel:8401473557">8401473557</a>
+    <p class="support-note">Please include your order number when contacting us about an existing purchase.</p>
+  </div>
+</section>
+{% endblock %}
