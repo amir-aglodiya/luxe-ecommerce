@@ -1,3 +1,46 @@
 {% extends 'base.html' %}
 {% block title %}Admin orders{% endblock %}
-{% block content %}<section class="simple-header"><p class="eyebrow">Admin / Fulfillment</p><h1>Order<br><em>control.</em></h1></section><section class="admin-shell"><aside class="admin-nav"><a href="{{ url_for('admin_dashboard') }}">Dashboard</a><a href="{{ url_for('admin_products') }}">Products</a><a class="active" href="{{ url_for('admin_orders') }}">Orders</a><a href="{{ url_for('admin_logout') }}">Sign out</a></aside><div class="admin-content"><div class="data-table"><div class="data-row data-head"><span>ID</span><span>Customer</span><span>Total</span><span>Status</span><span>Update</span></div>{% for order in orders %}<div class="data-row"><span>#{{ order.id }}</span><span>{{ order.customer }}<br><small>{{ order.email }}</small></span><span>₹{{ '%.0f'|format(order.total) }}</span><span>{{ order.status }}</span><span><form method="post" action="{{ url_for('admin_order_status', order_id=order.id) }}"><select name="status" onchange="this.form.submit()">{% for status in ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'] %}<option {% if order.status == status %}selected{% endif %}>{{ status }}</option>{% endfor %}</select></form></span></div>{% else %}<p class="data-empty">No orders yet.</p>{% endfor %}</div></div></section>{% endblock %}
+{% block content %}
+<section class="simple-header orders-header">
+  <p class="eyebrow">Admin / Fulfillment</p>
+  <h1>Order<br><em>control.</em></h1>
+  <p>Manage customer orders, payment totals, and fulfillment status.</p>
+</section>
+<section class="admin-shell orders-shell">
+  <aside class="admin-nav"><a href="{{ url_for('admin_dashboard') }}">Dashboard</a><a href="{{ url_for('admin_products') }}">Products</a><a class="active" href="{{ url_for('admin_orders') }}">Orders</a><a href="{{ url_for('admin_logout') }}">Sign out</a></aside>
+  <div class="admin-content">
+    <div class="order-summary">
+      <div><span>Total orders</span><strong>{{ summary['Total Orders'] }}</strong></div>
+      <div><span>Confirmed</span><strong>{{ summary['Confirmed'] }}</strong></div>
+      <div><span>Processing</span><strong>{{ summary['Processing'] }}</strong></div>
+      <div><span>Shipped</span><strong>{{ summary['Shipped'] }}</strong></div>
+      <div><span>Delivered</span><strong>{{ summary['Delivered'] }}</strong></div>
+      <div><span>Cancelled</span><strong>{{ summary['Cancelled'] }}</strong></div>
+    </div>
+    <div class="section-heading orders-heading"><div><h2>Orders</h2><span class="count">{{ summary['Total Orders'] }} orders</span></div></div>
+    <div class="orders-controls"><label class="sr-only" for="orders-search">Search orders</label><input id="orders-search" type="search" placeholder="Search orders..."><label class="sr-only" for="orders-filter">Filter orders</label><select id="orders-filter"><option value="all">All Orders</option>{% for status in statuses %}<option value="{{ status|lower|replace(' ', '-') }}">{{ status }}</option>{% endfor %}</select></div>
+    <div class="orders-table-wrapper">
+      <table class="orders-table">
+        <thead><tr><th>#</th><th>Order ID</th><th>Customer</th><th>Email</th><th>Total</th><th>Status</th><th>Date &amp; Time</th><th>Items</th><th>Update</th></tr></thead>
+        <tbody>{% for order in orders %}<tr data-order-row data-status="{{ order.status|lower|replace(' ', '-') }}"><td>{{ loop.index }}</td><td>#{{ order.id }}</td><td class="orders-customer">{{ order.customer }}</td><td>{{ order.email or '—' }}</td><td class="orders-total">₹{{ '{:,.0f}'.format(order.total) }}</td><td><span class="order-status order-status-{{ order.status|lower|replace(' ', '-') }}">{{ order.status }}</span></td><td>{{ order.created_at.strftime('%d %b %Y, %I:%M %p') }}</td><td>{{ order.item_count }} {{ 'item' if order.item_count == 1 else 'items' }}</td><td><form method="post" action="{{ url_for('admin_order_status', order_id=order.id) }}"><select name="status" aria-label="Update order #{{ order.id }}" onchange="this.form.submit()">{% for status in statuses %}<option {% if order.status == status %}selected{% endif %}>{{ status }}</option>{% endfor %}</select></form></td></tr>{% else %}<tr class="orders-empty"><td colspan="9">No orders found.</td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+  </div>
+</section>
+<script>
+  const orderSearch = document.querySelector('#orders-search');
+  const orderFilter = document.querySelector('#orders-filter');
+  const orderRows = document.querySelectorAll('[data-order-row]');
+  function filterOrders() {
+    const query = orderSearch.value.toLowerCase().trim();
+    const status = orderFilter.value;
+    orderRows.forEach((row) => {
+      const matchesText = !query || row.textContent.toLowerCase().includes(query);
+      const matchesStatus = status === 'all' || row.dataset.status === status;
+      row.hidden = !(matchesText && matchesStatus);
+    });
+  }
+  orderSearch.addEventListener('input', filterOrders);
+  orderFilter.addEventListener('change', filterOrders);
+</script>
+{% endblock %}

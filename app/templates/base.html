@@ -9,6 +9,9 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   {% if request.path.startswith('/admin') %}<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">{% endif %}
+  {% if request.path == '/database' %}<link rel="stylesheet" href="{{ url_for('static', filename='css/database.css') }}">{% endif %}
+  {% if request.path == '/admin/products' %}<link rel="stylesheet" href="{{ url_for('static', filename='css/catalog.css') }}">{% endif %}
+  {% if request.path == '/admin/orders' %}<link rel="stylesheet" href="{{ url_for('static', filename='css/orders.css') }}">{% endif %}
 </head>
 <body>
   <header class="site-header">

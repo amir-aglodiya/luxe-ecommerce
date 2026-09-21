@@ -1,5 +1,6 @@
 import os
 import sqlite3
+from datetime import datetime
 from functools import wraps
 from pathlib import Path
 
@@ -220,8 +221,13 @@ def create_app(test_config=None):
         }
         recent_orders = db.execute("""
             SELECT orders.id, users.name AS customer, orders.total, orders.status, orders.created_at
-            FROM orders JOIN users ON users.id = orders.user_id ORDER BY orders.id DESC LIMIT 8
+            FROM orders JOIN users ON users.id = orders.user_id
+            ORDER BY orders.created_at DESC, orders.id DESC LIMIT 10
         """).fetchall()
+        recent_orders = [
+            dict(order, created_at=datetime.strptime(order["created_at"], "%Y-%m-%d %H:%M:%S"))
+            for order in recent_orders
+        ]
         return render_template("admin_dashboard.html", stats=stats, recent_orders=recent_orders)
 
     @app.route("/admin/products", methods=["GET", "POST"])
@@ -255,11 +261,22 @@ def create_app(test_config=None):
     @app.get("/admin/orders")
     @admin_required
     def admin_orders():
-        orders = get_db().execute("""
-            SELECT orders.id, users.name AS customer, users.email, orders.total, orders.status, orders.created_at
-            FROM orders JOIN users ON users.id = orders.user_id ORDER BY orders.id DESC
+        db = get_db()
+        orders = db.execute("""
+            SELECT orders.id, users.name AS customer, users.email, orders.total, orders.status, orders.created_at,
+                   (SELECT COUNT(*) FROM order_items WHERE order_items.order_id = orders.id) AS item_count
+            FROM orders JOIN users ON users.id = orders.user_id
+            ORDER BY orders.created_at DESC, orders.id DESC
         """).fetchall()
-        return render_template("admin_orders.html", orders=orders)
+
+        def as_datetime(value):
+            return value if isinstance(value, datetime) else datetime.fromisoformat(value)
+
+        orders = [dict(order, created_at=as_datetime(order["created_at"])) for order in orders]
+        statuses = ["Pending", "Confirmed", "Processing", "Shipped", "Out for Delivery", "Delivered", "Cancelled"]
+        summary = {status: sum(order["status"] == status for order in orders) for status in statuses}
+        summary["Total Orders"] = len(orders)
+        return render_template("admin_orders.html", orders=orders, statuses=statuses, summary=summary)
 
     @app.post("/admin/orders/<int:order_id>/status")
     @admin_required
@@ -307,14 +324,37 @@ def create_app(test_config=None):
     @admin_required
     def database_view():
         db = get_db()
-        users = db.execute("SELECT id, name, email, phone, address, created_at FROM users ORDER BY id DESC").fetchall()
+        users = db.execute("SELECT id, name, email, phone, address, role, created_at FROM users ORDER BY id DESC").fetchall()
         products = db.execute("SELECT id, name, category, price, featured FROM products ORDER BY id DESC").fetchall()
         orders = db.execute("""
             SELECT orders.id, users.name AS customer, orders.total, orders.status, orders.created_at
-            FROM orders JOIN users ON users.id = orders.user_id ORDER BY orders.id DESC
+            FROM orders JOIN users ON users.id = orders.user_id
+            ORDER BY orders.created_at DESC, orders.id DESC
         """).fetchall()
-        order_items = db.execute("SELECT order_id, product_name, unit_price, quantity FROM order_items ORDER BY order_id DESC, id").fetchall()
-        return render_template("database.html", users=users, products=products, orders=orders, order_items=order_items)
+        order_items = db.execute("SELECT id, order_id, product_name, unit_price, quantity FROM order_items ORDER BY order_id DESC, id").fetchall()
+
+        def as_datetime(value):
+            return value if isinstance(value, datetime) else datetime.fromisoformat(value)
+
+        orders = [dict(order, created_at=as_datetime(order["created_at"])) for order in orders]
+        order_items = [
+            dict(item, subtotal=item["unit_price"] * item["quantity"])
+            for item in order_items
+        ]
+        summary = {
+            "users": len(users),
+            "products": len(products),
+            "orders": len(orders),
+            "order_items": len(order_items),
+        }
+        return render_template(
+            "database.html",
+            users=users,
+            products=products,
+            orders=orders,
+            order_items=order_items,
+            summary=summary,
+        )
 
     @app.post("/checkout")
     @login_required

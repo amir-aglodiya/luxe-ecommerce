@@ -1,6 +1,95 @@
 {% extends 'base.html' %}
 {% block title %}Database{% endblock %}
 {% block content %}
-<section class="simple-header"><p class="eyebrow">Private workspace</p><h1>Database <em>records.</em></h1><p>Saved users, catalog items, orders, and order line details.</p></section>
-<section class="data-page"><div class="data-section"><div class="section-heading"><h2>Users</h2><span class="count">{{ users|length }} records</span></div><div class="data-table"><div class="data-row data-head"><span>ID</span><span>Name</span><span>Email</span><span>Phone</span><span>Address</span></div>{% for user in users %}<div class="data-row"><span>{{ user.id }}</span><span>{{ user.name }}</span><span>{{ user.email }}</span><span>{{ user.phone or '—' }}</span><span>{{ user.address or '—' }}</span></div>{% else %}<p class="data-empty">No users saved.</p>{% endfor %}</div></div><div class="data-section"><div class="section-heading"><h2>Products</h2><span class="count">{{ products|length }} records</span></div><div class="data-table"><div class="data-row data-head"><span>ID</span><span>Product</span><span>Category</span><span>Price</span><span>Featured</span></div>{% for product in products %}<div class="data-row"><span>{{ product.id }}</span><span>{{ product.name }}</span><span>{{ product.category }}</span><span>₹{{ '%.0f'|format(product.price) }}</span><span>{{ 'Yes' if product.featured else 'No' }}</span></div>{% endfor %}</div></div><div class="data-section"><div class="section-heading"><h2>Orders</h2><span class="count">{{ orders|length }} records</span></div><div class="data-table"><div class="data-row data-head"><span>ID</span><span>Customer</span><span>Total</span><span>Status</span><span>Created</span></div>{% for order in orders %}<div class="data-row"><span>#{{ order.id }}</span><span>{{ order.customer }}</span><span>₹{{ '%.0f'|format(order.total) }}</span><span>{{ order.status }}</span><span>{{ order.created_at }}</span></div>{% for item in order_items if item.order_id == order.id %}<div class="data-row data-subrow"><span></span><span>{{ item.product_name }} × {{ item.quantity }}</span><span>₹{{ '%.0f'|format(item.unit_price) }} each</span><span>Order detail</span><span></span></div>{% endfor %}{% else %}<p class="data-empty">No orders saved.</p>{% endfor %}</div></div></section>
+<section class="simple-header database-header">
+  <p class="eyebrow">Private workspace</p>
+  <h1>Database <em>records.</em></h1>
+  <p>Saved users, catalog items, orders, and order line details.</p>
+</section>
+
+<section class="database-page">
+  <div class="database-toolbar">
+    <div>
+      <p class="eyebrow">Record index</p>
+      <h2>Database summary</h2>
+    </div>
+    <div class="database-controls">
+      <label class="sr-only" for="database-search">Search records</label>
+      <input id="database-search" type="search" placeholder="Search records...">
+      <label class="sr-only" for="database-filter">Filter records</label>
+      <select id="database-filter">
+        <option value="all">All records</option>
+        <option value="users">Users</option>
+        <option value="products">Products</option>
+        <option value="orders">Orders</option>
+        <option value="order-items">Order items</option>
+      </select>
+    </div>
+  </div>
+  <div class="database-summary">
+    <div><span>Users</span><strong>{{ summary.users }}</strong></div>
+    <div><span>Products</span><strong>{{ summary.products }}</strong></div>
+    <div><span>Orders</span><strong>{{ summary.orders }}</strong></div>
+    <div><span>Order items</span><strong>{{ summary.order_items }}</strong></div>
+  </div>
+
+  <section class="database-section" data-record-group="users">
+    <div class="database-section-heading"><h2>Users</h2><span>{{ summary.users }} records</span></div>
+    <div class="database-table-wrapper">
+      <table class="database-table">
+        <thead><tr><th>#</th><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Address</th><th>Role</th></tr></thead>
+        <tbody>{% for user in users %}<tr data-record-row><td>{{ loop.index }}</td><td>{{ user.id }}</td><td>{{ user.name }}</td><td>{{ user.email }}</td><td>{{ user.phone or '—' }}</td><td>{{ user.address or '—' }}</td><td><span class="role-badge role-{{ user.role|lower }}">{{ user.role }}</span></td></tr>{% else %}<tr class="database-empty"><td colspan="7">No users found.</td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="database-section" data-record-group="products">
+    <div class="database-section-heading"><h2>Products</h2><span>{{ summary.products }} records</span></div>
+    <div class="database-table-wrapper">
+      <table class="database-table">
+        <thead><tr><th>#</th><th>ID</th><th>Product</th><th>Category</th><th>Price</th><th>Featured</th></tr></thead>
+        <tbody>{% for product in products %}<tr data-record-row><td>{{ loop.index }}</td><td>{{ product.id }}</td><td>{{ product.name }}</td><td>{{ product.category }}</td><td>₹{{ '{:,.0f}'.format(product.price) }}</td><td><span class="feature-badge">{{ 'Yes' if product.featured else 'No' }}</span></td></tr>{% else %}<tr class="database-empty"><td colspan="6">No products found.</td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="database-section" data-record-group="orders">
+    <div class="database-section-heading"><h2>Orders</h2><span>{{ summary.orders }} records</span></div>
+    <div class="database-table-wrapper">
+      <table class="database-table database-orders-table">
+        <thead><tr><th>#</th><th>Order ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Date &amp; Time</th></tr></thead>
+        <tbody>{% for order in orders %}<tr data-record-row><td>{{ loop.index }}</td><td>#{{ order.id }}</td><td>{{ order.customer }}</td><td>₹{{ '{:,.0f}'.format(order.total) }}</td><td><span class="order-status order-status-{{ order.status|lower|replace(' ', '-') }}">{{ order.status }}</span></td><td>{{ order.created_at.strftime('%d %b %Y, %I:%M %p') }}</td></tr>{% else %}<tr class="database-empty"><td colspan="6">No orders found.</td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="database-section" data-record-group="order-items">
+    <div class="database-section-heading"><h2>Order line items</h2><span>{{ summary.order_items }} records</span></div>
+    <div class="database-table-wrapper">
+      <table class="database-table">
+        <thead><tr><th>#</th><th>Order ID</th><th>Product</th><th>Quantity</th><th>Unit Price</th><th>Subtotal</th></tr></thead>
+        <tbody>{% for item in order_items %}<tr data-record-row><td>{{ loop.index }}</td><td>#{{ item.order_id }}</td><td>{{ item.product_name }}</td><td>{{ item.quantity }}</td><td>₹{{ '{:,.0f}'.format(item.unit_price) }}</td><td>₹{{ '{:,.0f}'.format(item.subtotal) }}</td></tr>{% else %}<tr class="database-empty"><td colspan="6">No order items found.</td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+  </section>
+</section>
+<script>
+  const searchInput = document.querySelector('#database-search');
+  const filterSelect = document.querySelector('#database-filter');
+  const recordGroups = document.querySelectorAll('[data-record-group]');
+  function filterDatabaseRecords() {
+    const query = searchInput.value.toLowerCase().trim();
+    const selectedGroup = filterSelect.value;
+    recordGroups.forEach((group) => {
+      const visibleGroup = selectedGroup === 'all' || group.dataset.recordGroup === selectedGroup;
+      group.hidden = !visibleGroup;
+      if (!visibleGroup) return;
+      group.querySelectorAll('[data-record-row]').forEach((row) => {
+        row.hidden = query && !row.textContent.toLowerCase().includes(query);
+      });
+    });
+  }
+  searchInput.addEventListener('input', filterDatabaseRecords);
+  filterSelect.addEventListener('change', filterDatabaseRecords);
+</script>
 {% endblock %}
